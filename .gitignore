@@ -1,0 +1,4 @@
+start.sh
+music_lib/*
+target
+Cargo.lock
