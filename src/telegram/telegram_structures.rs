@@ -16,7 +16,7 @@ pub struct TgResponse<T> {
     pub description: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq)]
 pub struct TgUser {
     pub id: u64,
 }
@@ -29,7 +29,7 @@ pub struct TgMessage {
 
 #[derive(Deserialize)]
 pub struct TgChat {
-    pub id: u64,
+    pub id: i64,
 }
 
 #[derive(Deserialize)]
@@ -43,4 +43,11 @@ pub struct TgCallbackData {
 pub struct TgUpdate {
     pub update_id: u64,
     pub message: Option<TgMessage>,
+}
+
+#[derive(PartialEq)]
+pub enum Control {
+    Stop,
+    Play,
+    Nothing,
 }
