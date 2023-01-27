@@ -2,10 +2,14 @@ use ureq;
 
 use crate::telegram::telegram_structures::*;
 
+const TELEGRAM_ADDRESS: &str = "https://api.telegram.org/bot";
+const SEND_MESSAGE: &str = "/sendMessage";
+const GET_UPDATES: &str = "/getUpdates";
+
 pub fn send_message(token: &str, chat_id: i64, text: &str) -> () {
     let requset_string: &str = &(format!(
         "{0}{1}{2}",
-        "https://api.telegram.org/bot", token, "/sendMessage"
+        TELEGRAM_ADDRESS, token, SEND_MESSAGE
     ));
     let chat_id_str: &str = &(format!("{}", chat_id));
     let send_help_message =
@@ -20,7 +24,7 @@ pub fn send_message(token: &str, chat_id: i64, text: &str) -> () {
 pub fn get_updates(token: &str, update_id: &u64) -> Result<TgResponse<Vec<TgUpdate>>, ureq::Error> {
     let requset_string: &str = &(format!(
         "{0}{1}{2}",
-        "https://api.telegram.org/bot", token, "/getUpdates"
+        TELEGRAM_ADDRESS, token, GET_UPDATES
     ));
     let update_id: &str = &format!("{}", update_id);
     let messages = ureq::get(requset_string)
