@@ -9,14 +9,13 @@ use rodio::Sink;
 use rodio::{Decoder, OutputStream};
 use std::fs::File;
 use std::io::BufReader;
-use std::sync::mpsc;
-use std::thread;
+use std::string::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let chat_id = args[2].parse::<i64>().unwrap();
     let admin_id = args[3].parse::<u64>().unwrap();
-    let token = ""; //args[1].clone();//""; //args.into_iter().nth(1).expect("Missing element"); args[1].as_str();/
+    let token = args[1].as_str();
     let paths: Vec<Result<fs::DirEntry, std::io::Error>> =
         fs::read_dir("./music_lib").unwrap().collect();
 
@@ -26,10 +25,9 @@ fn main() {
 
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();
+    let mut status = Control::Play;
 
-    let (tx, rx) = mpsc::channel();
-
-    thread::spawn(move || loop {
+    loop {
         let updates = get_updates(&token, &update_id);
         match updates {
             Ok(result) => {
@@ -37,47 +35,50 @@ fn main() {
                 let (next_upd_id, control_message) =
                     find_owner_control_message(admin_id, vec_of_updates);
                 update_id = next_upd_id;
-                tx.send(control_message).unwrap();
-            }
-            Err(_) => tx.send(Control::Nothing).unwrap(),
-        }
-    });
+                match control_message {
+                    Control::Play => {
+                        sink.stop();
+                        let i = rng.gen_range(0..nums);
+                        let next_track_path =
+                            format!("{}", paths[i].as_ref().unwrap().path().display());
+                        let next_track = read_info(&next_track_path);
+                        send_message(&token, chat_id, &next_track);
+                        let file = BufReader::new(File::open(next_track_path).unwrap());
+                        let source = Decoder::new(file).unwrap();
 
-    loop {
-        let received = rx.recv();
-        match received {
-            Ok(message) => match message {
-                Control::Play => {
-                    let i = rng.gen_range(0..nums);
-                    let next_track_path =
-                        format!("{}", paths[i].as_ref().unwrap().path().display());
-                    let next_track = read_info(&next_track_path);
-                    send_message(&token, chat_id, &next_track);
-                    let file = BufReader::new(File::open(next_track_path).unwrap());
-                    let source = Decoder::new(file).unwrap();
+                        sink.append(source);
+                        println!("song started");
+                        sink.play();
+                        status = Control::Play;
+                    }
+                    Control::Stop => {
+                        println!("song stopped");
+                        sink.stop();
+                        status = Control::Stop;
+                    }
+                    _ => match status {
+                        Control::Stop => (),
+                        _ => {
+                            if sink.empty() {
+                                let i = rng.gen_range(0..nums);
+                                let next_track_path =
+                                    format!("{}", paths[i].as_ref().unwrap().path().display());
+                                let next_track = read_info(&next_track_path);
+                                send_message(&token, chat_id, &next_track);
+                                let file = BufReader::new(File::open(next_track_path).unwrap());
+                                let source = Decoder::new(file).unwrap();
 
-                    sink.append(source);
-                    println!("song started");
-                    sink.play();
+                                sink.append(source);
+                                println!("song started");
+                                sink.play();
+                            } else {
+                                ()
+                            }
+                        }
+                    },
                 }
-                Control::Stop => {
-                    println!("song stopped");
-                    sink.stop();
-                }
-                _ => (),
-            },
-            _ => {
-                let i = rng.gen_range(0..nums);
-                let next_track_path = format!("{}", paths[i].as_ref().unwrap().path().display());
-                let next_track = read_info(&next_track_path);
-                send_message(&token, chat_id, &next_track);
-                let file = BufReader::new(File::open(next_track_path).unwrap());
-                let source = Decoder::new(file).unwrap();
-
-                sink.append(source);
-                println!("song started");
-                sink.play();
             }
+            _ => (),
         }
     }
 }

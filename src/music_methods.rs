@@ -14,7 +14,7 @@ pub fn play_file(path: &str) -> Sink {
 }
 
 pub fn play_file_new(path: &str, sink: &Sink) -> () {
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let (_stream, _stream_handle) = OutputStream::try_default().unwrap();
     let file = BufReader::new(File::open(path).unwrap());
     let source = Decoder::new(file).unwrap();
     sink.append(source);

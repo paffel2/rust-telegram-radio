@@ -1,8 +1,5 @@
+use std::str::*;
 use ureq;
-
-use std::sync::mpsc;
-use std::time::Duration;
-use std::{io, thread};
 
 use crate::telegram::telegram_structures::*;
 
@@ -49,9 +46,10 @@ pub fn find_owner_control_message(owner_id: u64, updates: Vec<TgUpdate>) -> (u64
     match last_update.message {
         Some(mess) => {
             if mess.from == Some(TgUser { id: owner_id }) {
-                if mess.text == Some("play".to_string()) {
+                let checking_text = mess.text.map(to_lowercase1);
+                if checking_text == Some("play".to_string()) {
                     return (next_update + 1, Control::Play);
-                } else if mess.text == Some("stop".to_string()) {
+                } else if checking_text == Some("stop".to_string()) {
                     return (next_update + 1, Control::Stop);
                 } else {
                     return (next_update + 1, Control::Nothing);
@@ -62,4 +60,8 @@ pub fn find_owner_control_message(owner_id: u64, updates: Vec<TgUpdate>) -> (u64
     }
 
     (next_update + 1, Control::Nothing)
+}
+
+fn to_lowercase1(prev: String) -> String {
+    prev.to_lowercase()
 }
