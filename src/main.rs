@@ -1,12 +1,11 @@
 use rand::Rng;
+use rodio::Sink;
+use rodio::{Decoder, OutputStream};
 use rust_telegram_radio::music_methods::*;
 use rust_telegram_radio::telegram::telegram_methods::*;
 use rust_telegram_radio::telegram::telegram_structures::Control;
 use std::env;
 use std::fs;
-mod telegram;
-use rodio::Sink;
-use rodio::{Decoder, OutputStream};
 use std::fs::File;
 use std::io::BufReader;
 use std::string::*;

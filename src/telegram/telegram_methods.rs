@@ -1,4 +1,3 @@
-use std::str::*;
 use ureq;
 
 use crate::telegram::telegram_structures::*;
